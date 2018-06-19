@@ -1,15 +1,15 @@
 # Copyright (C) 2014 Ashton Reimer
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -42,7 +42,7 @@ class DataFileIO(object):
     """A generalized data pointer class which contains general methods for
     reading various data file (dmap, hdf5, etc.) types into SuperDARN data types
     (fit, raw, iqdat, map, etc.).
-    
+
     Public Attributes
     ------------------
     sTime : (datetime)
@@ -54,7 +54,7 @@ class DataFileIO(object):
     dType : (str)
         the file data type, 'dmap','hdf5'
     recordIndex : (dict)
-        look up dictionary for file offsets for all records 
+        look up dictionary for file offsets for all records
     scanStartIndex : (dict)
         look up dictionary for file offsets for scan start records
 
@@ -63,7 +63,7 @@ class DataFileIO(object):
     ptr : (file)
         the data pointer (different depending dmap or hdf5)
     fd : (int)
-        the file descriptor 
+        the file descriptor
     filename : (str)
         the name of the currently open file
 
@@ -79,24 +79,24 @@ class DataFileIO(object):
     offsetTell
         Current byte offset
     rewind
-        rewind file back to the beginning 
+        rewind file back to the beginning
     read
         read record at current file offset in to a dictionary
- 
+
     Written by ASR 20140822
     """
 
     #### NOTE TO DEVS ####
     # Dictionaries are used to select which data type specific methods to use
-    # Props to Adam Knox (github @aknox-va) for the idea. 
+    # Props to Adam Knox (github @aknox-va) for the idea.
     #
-    # First of all, different data containers, like dmap, hdf5, txt, etc. 
+    # First of all, different data containers, like dmap, hdf5, txt, etc.
     # are what is meant by data types
     #
     # The point here is to support various data types using this class
     # without the child classes (radDataPtr, sdDataPtr) having to switch
-    # to employ logic to utilize the appropriate method ie) radDataPtr 
-    # doesn't need to have conditional logic to decide with "read" 
+    # to employ logic to utilize the appropriate method ie) radDataPtr
+    # doesn't need to have conditional logic to decide with "read"
     # method to use.
     #
     # To add support for another data type, one needs to do 2 things:
@@ -104,10 +104,10 @@ class DataFileIO(object):
     #        read, createIndex, offsetSeek, offsetTell, and rewind
     #        One must create a method for each one of these (see examples
     #        at the end of this class).
-    #     2) Each method needs to be registered in the method dictionaries 
-    #        in the __init__ of this class. The keys in each dictionary 
-    #        are the data types and the values are the method names for 
-    #        those dictionary types, ie) __read is the read methods 
+    #     2) Each method needs to be registered in the method dictionaries
+    #        in the __init__ of this class. The keys in each dictionary
+    #        are the data types and the values are the method names for
+    #        those dictionary types, ie) __read is the read methods
     #        dictionary, where __read = {'dmap':self.__readDmap} points
     #        to the __readDmap method for the dmap data type.
     #####################
@@ -117,9 +117,9 @@ class DataFileIO(object):
         import davitpy.pydarn
         import datetime as dt
 
-        # Data type method dictionaries to select the data type 
-        # specific methods to use credit to Adam Knox (github 
-        # @aknox-va) for the idea.          
+        # Data type method dictionaries to select the data type
+        # specific methods to use credit to Adam Knox (github
+        # @aknox-va) for the idea.
 
         __read = {'dmap':self.__readDmap}
         __createIndex = {'dmap':self.__createIndexDmap}
@@ -143,7 +143,7 @@ class DataFileIO(object):
         self.dType = datatype
         self.recordIndex = None
         self.scanStartIndex = None
-        self._filename = fileName 
+        self._filename = fileName
         self._fd = None
         self._ptr =  None
 
@@ -158,17 +158,17 @@ class DataFileIO(object):
     # FIRST, THE GENERAL COMMON METHODS
 
     def __del__(self):
-        self.close() 
+        self.close()
 
     def __iter__(self):
         return self
-     
+
     def open(self):
         """open the associated filename."""
         import os
         self._fd = os.open(self._filename, os.O_RDONLY)
         self._ptr = os.fdopen(self._fd)
- 
+
     def close(self):
         """ Close the associated file.
         """
@@ -188,7 +188,7 @@ class DataFileIO(object):
     def __createIndexDmap(self):
         """ Create dictionary of offsets as a function of timestamp.
         """
-        # This method will have to do different things depending 
+        # This method will have to do different things depending
         # on self.dType (for future other data file support ie. hdf5)
 
         import datetime as dt
@@ -210,7 +210,7 @@ class DataFileIO(object):
                 break
             else:
                 if(dt.datetime.utcfromtimestamp(dfile['time']) >= self.sTime and
-                   dt.datetime.utcfromtimestamp(dfile['time']) <= self.eTime): 
+                   dt.datetime.utcfromtimestamp(dfile['time']) <= self.eTime):
                     rectime = dt.datetime.utcfromtimestamp(dfile['time'])
                     recordDict[rectime] = offset
                     if dfile['scan'] == 1:
@@ -223,9 +223,9 @@ class DataFileIO(object):
 
     def __offsetSeekDmap(self, offset, force=False):
         """ Jump to dmap record at supplied byte offset.
-        Require offset to be in record index list unless forced. 
+        Require offset to be in record index list unless forced.
         """
-        # This method will have to do different things depending 
+        # This method will have to do different things depending
         # on self.dType (for future other data file support ie. hdf5)
 
         from davitpy.pydarn.dmapio import setDmapOffset, getDmapOffset
@@ -233,7 +233,7 @@ class DataFileIO(object):
         if force:
             return setDmapOffset(self._fd, offset)
         else:
-            if self.recordIndex is None:        
+            if self.recordIndex is None:
                 self.__createIndexDmap()
 
             if offset in self.recordIndex.values():
@@ -245,7 +245,7 @@ class DataFileIO(object):
         """ Jump to dmap record at supplied byte offset.
         """
 
-        # This method will have to do different things depending 
+        # This method will have to do different things depending
         # on self.dType (for future other data file support ie. hdf5)
 
         from davitpy.pydarn.dmapio import getDmapOffset
@@ -255,9 +255,9 @@ class DataFileIO(object):
         """ Jump to beginning of dmap file.
         """
 
-        # This method will have to do different things depending 
+        # This method will have to do different things depending
         # on self.dType (for future other data file support ie. hdf5)
-        from davitpy.pydarn.dmapio import setDmapOffset 
+        from davitpy.pydarn.dmapio import setDmapOffset
         return setDmapOffset(self._fd, 0)
 
     def __readDmap(self):
@@ -269,7 +269,7 @@ class DataFileIO(object):
            A dictionary with the data in the dmap record.  Will return None
            when finished reading
        """
-       # This method will have to do different things depending 
+       # This method will have to do different things depending
        # on self.dType (for future other data file support ie. hdf5)
 
        from davitpy import pydarn
@@ -397,5 +397,5 @@ if __name__=="__main__":
     print "    ...closed! (Success!)"
     print "\n ALL DONE TESTING"
 
-  
+
 
