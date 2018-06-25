@@ -7,7 +7,8 @@
  (c) 2011 JHU/APL & Others - Please Consult LICENSE.datamap.txt for more information.                                                                 
 */
 
-
+// TODO: Document this code
+// TODO: Do we want this to still be associated with Barnes and APL?
 
 #include <Python.h>
 #include <stdio.h>
