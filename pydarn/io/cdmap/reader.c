@@ -63,164 +63,51 @@ read_dmap_rec(PyObject *self, PyObject *args)
     {
         s = beamdata->scl[i];
         PyObject *value;
+        
 
-        // Go through all possible scalar values and add them to the dictionary
-        if ((strcmp(s->name,"radar.revision.major")==0) && (s->type==DATACHAR))
+        if (s->type == DATASHORT)
+        {    
+            value = Py_BuildValue(("i",*(s->data.sptr));   
+        }    
+        else if (s->type == DATACHAR)
+        {    
+            value = Py_BuildValue("c"s->data.cptr);
+        }
+        else if (s->type == DATAINT)
+        {    
+            value = Py_BuildValue("i",*(s->data.iptr))
+        }
+        else if (s->type == DATAFLOAT)
+        {    
+            value = Py_BuildValue("f",*(s->data.fptr))
+        }
+        else if (s->tyoe == DATAFLOAT)
+        {    
+            value = Py_BuildValue("d",*(s->data.dptr))
+            }
+        else if (s->type == DATASTRING)
         {
-            value = PyChar_FromChar((char)s->data.cptr);
-            if ( PyDict_SetItemString(beam_record, "radar revision major", value) < 0 )
-            {
-                Py_DECREF(value);
-                return -1; 
-            }
+            value = Py_BuildValue("s",*((char **)s->data.vptr))
         }
-        if ((strcmp(s->name,"radar.revision.minor")==0) && (s->type==DATACHAR))
+        else
         {
-            value = PyChar_FromChar((char)s->data.cptr);
-            if ( PyDict_SetItemString(beam_record, "radar revision minor", value) < 0 )
-            {
-                Py_DECREF(value);
-                return -1; 
-            }
+            Py_DECREF(value);
+            Py_DECREF(fitacf_record);
+            Py_DECREF(beam_record);
+            return -1;
         }
-        else if ((strcmp(s->name,"origin.code")==0) && (s->type==DATACHAR))
-         {
-            value = PyChar_FromChar((char)s->data.cptr);
-            if ( PyDict_SetItemString(beam_record, "origin code", value) < 0 )
-            {
-                Py_DECREF(value);
-                return -1; 
-            }
-        } 
-        else if ((strcmp(s->name,"origin.time")==0) && (s->type==DATASTRING))
-          {
-            value = PyString_((char **)s->data.sptr);
-            if ( PyDict_SetItemString(beam_record, "day", value) < 0 )
-            {
-                Py_DECREF(value);
-                return -1; 
-            }
-        }
-      
-        else if ((strcmp(s->name,"time.hr")==0) && (s->type==DATASHORT))
-           {
-            value = PyInt_FromShort((short)s->data.sptr);
-            if ( PyDict_SetItemString(beam_record, "hour", value) < 0 )
-            {
-                Py_DECREF(value);
-                return -1; 
-            }
-        }
-     
-        else if ((strcmp(s->name,"time.mt")==0) && (s->type==DATASHORT))
-            {
-            value = PyInt_FromShort((short)s->data.sptr);
-            if ( PyDict_SetItemString(beam_record, "minute", value) < 0 )
-            {
-                Py_DECREF(value);
-                return -1; 
-            }
-        }
-    
-        else if ((strcmp(s->name,"time.sc")==0) && (s->type==DATASHORT))
-             {
-            value = PyInt_FromShort((short)s->data.sptr);
-            if ( PyDict_SetItemString(beam_record, "seconds", value) < 0 )
-            {
-                Py_DECREF(value);
-                return -1; 
-            }
-        }
-   
-        else if ((strcmp(s->name,"time.us")==0) && (s->type==DATAINT))
+        
+        if ( PyDict_SetItemString(beamData,s->name,value) < 0 )
         {
-            // Does this actually work? should we store it as a double?
-            value = PyInt_FromInt(((int)(((int)(*(s->data.iptr)*1e-3))*1e3)));
-            if ( PyDict_SetItemString(beam_record, "us", value) < 0 )
-            {
-                Py_DECREF(value);
-                return -1; 
-            }
-        }
-        if ((strcmp(s->name,"nrang")==0) && (s->type==DATASHORT))
-        {
-            value = PyInt_FromShort((short)s->data.sptr);
-            if ( PyDict_SetItemString(beam_record, "nrang", value) < 0 )
-            {
-                Py_DECREF(value);
-                return -1; 
-            }
-        }
-        if ((strcmp(s->name,"time.yr")==0) && (s->type==DATASHORT))
-        {
-            value = PyInt_FromShort((short)s->data.sptr);
-            if ( PyDict_SetItemString(beam_record, "year", value) < 0 )
-            {
-                Py_DECREF(value);
-                return -1; 
-            }
-        }
-        else if ((strcmp(s->name,"time.mo")==0) && (s->type==DATASHORT))
-         {
-            value = PyInt_FromShort((short)s->data.sptr);
-            if ( PyDict_SetItemString(beam_record, "month", value) < 0 )
-            {
-                Py_DECREF(value);
-                return -1; 
-            }
-        } 
-        else if ((strcmp(s->name,"time.dy")==0) && (s->type==DATASHORT))
-          {
-            value = PyInt_FromShort((short)s->data.sptr);
-            if ( PyDict_SetItemString(beam_record, "day", value) < 0 )
-            {
-                Py_DECREF(value);
-                return -1; 
-            }
-        }
-      
-        else if ((strcmp(s->name,"time.hr")==0) && (s->type==DATASHORT))
-           {
-            value = PyInt_FromShort((short)s->data.sptr);
-            if ( PyDict_SetItemString(beam_record, "hour", value) < 0 )
-            {
-                Py_DECREF(value);
-                return -1; 
-            }
-        }
-     
-        else if ((strcmp(s->name,"time.mt")==0) && (s->type==DATASHORT))
-            {
-            value = PyInt_FromShort((short)s->data.sptr);
-            if ( PyDict_SetItemString(beam_record, "minute", value) < 0 )
-            {
-                Py_DECREF(value);
-                return -1; 
-            }
-        }
-    
-        else if ((strcmp(s->name,"time.sc")==0) && (s->type==DATASHORT))
-             {
-            value = PyInt_FromShort((short)s->data.sptr);
-            if ( PyDict_SetItemString(beam_record, "seconds", value) < 0 )
-            {
-                Py_DECREF(value);
-                return -1; 
-            }
-        }
-   
-        else if ((strcmp(s->name,"time.us")==0) && (s->type==DATAINT))
-        {
-            // Does this actually work? should we store it as a double?
-            value = PyInt_FromInt(((int)(((int)(*(s->data.iptr)*1e-3))*1e3)));
-            if ( PyDict_SetItemString(beam_record, "us", value) < 0 )
-            {
-                Py_DECREF(value);
-                return -1; 
-            }
-        }
- 
+            Py_DECREF(value);
+            Py_DECREF(fitacf_record);
+            Py_DECREF(beam_record);
+            return -1;
 
+        }
+        PyCLEAR(value)
+    }
+    return 0;
 }
 
 
