@@ -42,6 +42,7 @@ void parsePyPrm(struct RadarParm *prm, PyObject *pyprm)
 static PyObject *
 get_dmap_offset(PyObject *self, PyObject *args)
 {
+  (void) self; //supress unused warning
   int fd;
   long offset;
   FILE* fp=NULL;
@@ -52,7 +53,7 @@ get_dmap_offset(PyObject *self, PyObject *args)
     PyObject *recordOffset = NULL;
     fp = fdopen(fd,"r");
     offset=ftell(fp);
-    recordOffset=PyInt_FromLong(offset);
+    recordOffset=PyLong_FromLong(offset);
     return recordOffset;
   }  
 }
@@ -60,6 +61,7 @@ get_dmap_offset(PyObject *self, PyObject *args)
 static PyObject *
 set_dmap_offset(PyObject *self, PyObject *args)
 {
+  (void) self;
   int fd;
   long offset,noffset;
   FILE* fp=NULL;
@@ -82,6 +84,7 @@ set_dmap_offset(PyObject *self, PyObject *args)
 static PyObject *
 read_dmap_rec(PyObject *self, PyObject *args)
 {
+  (void) self; 
   int fd;
   if(!PyArg_ParseTuple(args, "i", &fd))
     return NULL;
@@ -285,12 +288,20 @@ static PyMethodDef dmapioMethods[] =
   {"readDmapRec",  read_dmap_rec, METH_VARARGS, "read a dmap record"},
   {"getDmapOffset",  get_dmap_offset, METH_VARARGS, "get current dmap file offset"},
   {"setDmapOffset",  set_dmap_offset, METH_VARARGS, "set dmap file offset"},
-
   {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
+static struct PyModuleDef dmapiomodule = {
+    PyModuleDef_HEAD_INIT,
+    "dmapio",
+    "",
+    -1,
+    dmapioMethods
+};
+
 PyMODINIT_FUNC
-initdmapio(void)
+PyInit_dmapio(void)
 {
-  (void) Py_InitModule("dmapio", dmapioMethods);
+  
+    return PyModule_Create(&dmapiomodule);
 }

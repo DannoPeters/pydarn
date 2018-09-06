@@ -9,13 +9,13 @@ TARGET=dmap
 all:$(TARGET)
 
 $(TARGET):$(OBJECTS)
-	$(CC) -o $@ $^ $(LDFLAGS)
+	$(CC) $(INCLUDEDIRS) -o $@ $^ $(LDFLAGS)
 
 %.o: %.c %.h
-	$(CC) $(CCFLAGS) -c $< $(INCLUDEDIRS)
+	$(CC) $(CCFLAGS) $(INCLUDEDIRS) -c $< 
 
 %.o: %.c
-	$(CC) $(CCFLAGS) -c $< $(INCLUDEDIRS)
+	$(CC) $(CCFLAGS) $(INCLUDEDIRS) -c $< 
 
 clean:
 	rm -f *.o $(TARGET)

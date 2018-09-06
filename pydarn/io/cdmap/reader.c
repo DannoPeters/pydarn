@@ -5,16 +5,16 @@
  */
 
 #include <Python.h>
-#include <stdio.h>
+//#include <stdio.h>
 #include <datetime.h>
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
-#include <errno>
+//#include <errno.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include <string.h>
+//#include <string.h>
 #include <fcntl.h>
 #include "rtypes.h"
 #include "rconvert.h"
@@ -31,7 +31,11 @@
 static PyObject *
 read_dmap_rec(PyObject *self, PyObject *args)
 {
+    (void) self;
+    (void) args;
     int fd; // file descriptor 
+    FILE* fp=NULL;
+    PyObject *error;
     /*Each fitacf record contains subrecords of data for each beam divided
      * by times 
      *
@@ -43,79 +47,81 @@ read_dmap_rec(PyObject *self, PyObject *args)
     fp = fdopen(fd,"r"); // fp - file pointer
     if ( fp == NULL)
     {
-        return PyErr_SetFromErrno(errno);
+        error = Py_BuildValue("i",&errno);
+        return PyErr_SetFromErrno(error);
     }
 
     // dmap structures for scalar data and array data for each beam 
-    DataMap *beamdata;
-    DataMapScalar *scalardata; 
-    DataMapArray *arraydata;
+    struct DataMap *beamdata;
+    struct DataMapScalar *scalardata; 
+    struct DataMapArray *arraydata;
 
     beamdata = DataMapRead(fd);
     if ( beamdata == NULL)
     {
-        return PyErr_SetFromErrno(errno);
+        error = Py_BuildValue("i",&errno);
+        return PyErr_SetFromErrno(error);
     }
-    
+    PyObject *value;
+   
     // snum - number of scalar values
     for(int i=0; i < beamdata->snum; i++)
     {
-        s = beamdata->scl[i];
-        PyObject *value;
+        scalardata = beamdata->scl[i];
         
 
         if (scalardata->type == DATASHORT)
         {   
             if ( strcmp(scalardata->name, "nrang") == 0 )
             {
-                nrange = scalaradata->data.sptr; // need this value for the vector arrays
+                nrange = *(scalardata->data.sptr); // need this value for the vector arrays
             }
-            value = Py_BuildValue(("i",*(scalardata->data.sptr));   
+            value = Py_BuildValue("i",&(scalardata->data.sptr));   
         }    
         else if (scalardata->type == DATACHAR)
         {    
-            value = Py_BuildValue("c"scalardata->data.cptr);
+            value = Py_BuildValue("c",scalardata->data.cptr);
         }
         else if (scalardata->type == DATAINT)
         {    
-            value = Py_BuildValue("i",*(scalardata->data.iptr))
+            value = Py_BuildValue("i",*(scalardata->data.iptr));
         }
         else if (scalardata->type == DATAFLOAT)
         {    
-            value = Py_BuildValue("f",*(scalardata->data.fptr))
+            value = Py_BuildValue("f",*(scalardata->data.fptr));
         }
-        else if (scalardata->tyoe == DATAFLOAT)
+        else if (scalardata->type == DATAFLOAT)
         {    
-            value = Py_BuildValue("d",*(scalardata->data.dptr))
+            value = Py_BuildValue("d",*(scalardata->data.dptr));
             }
         else if (scalardata->type == DATASTRING)
         {
-            value = Py_BuildValue("s",*((char **)scalardata->data.vptr))
+            value = Py_BuildValue("s",*((char **)scalardata->data.vptr));
         }
         else
         {
             Py_DECREF(value);
             Py_DECREF(beam_record);
-            return -1;
+            error = Py_BuildValue("i",-1);
+            return PyErr_SetFromErrno(error);
         }
         
         if ( PyDict_SetItemString(beam_record,scalardata->name,value) < 0 )
         {
             Py_DECREF(value);
             Py_DECREF(beam_record);
-            return -1;
-
+            error = Py_BuildValue("i",-1);
+            return PyErr_SetFromErrno(error);
         }
-        PyCLEAR(value)
+        PyCLEAR(value);
     }
 
+    PyObject *vector_list = PyList_New(0);
     // Parse the vectors now
     for(int i=0; i < beamdata->anum;i++)
     {
-        arraydata = deamdata->arr[i];
-        PyObject *vector_list = PyListNew(0);
-
-        // special case 
+        arraydata = beamdata->arr[i];
+         // special case 
         if ( arraydata->dim <= 2 )
         {
             if (strcmp(arraydata->name,"ltab") == 0 && arraydata->type == DATASHORT)
@@ -137,32 +143,34 @@ read_dmap_rec(PyObject *self, PyObject *args)
                     }
                     else if (scalardata->type == DATACHAR)
                     {    
-                        value = Py_BuildValue("c"scalardata->data.cptr);
+                        value = Py_BuildValue("c",scalardata->data.cptr);
                     }
                     else if (scalardata->type == DATAINT)
                     {    
-                        value = Py_BuildValue("i",*(scalardata->data.iptr))
+                        value = Py_BuildValue("i",*(scalardata->data.iptr));
                     }
                     else if (scalardata->type == DATAFLOAT)
                     {    
-                        value = Py_BuildValue("f",*(scalardata->data.fptr))
+                        value = Py_BuildValue("f",*(scalardata->data.fptr));
                     }
-                    else if (scalardata->tyoe == DATAFLOAT)
+                    else if (scalardata->type == DATAFLOAT)
                     {    
-                        value = Py_BuildValue("d",*(scalardata->data.dptr))
+                        value = Py_BuildValue("d",*(scalardata->data.dptr));
                         }
                     else if (scalardata->type == DATASTRING)
                     {
-                        value = Py_BuildValue("s",data->data.vptr))
+                        value = Py_BuildValue("s",scalardata->data.vptr);
                     }
                     else
                     {
                                 Py_DECREF(value);
                                 Py_DECREF(vector_list);
                                 Py_DECREF(beam_record);
-                                return -1;
-
+                                error = Py_BuildValue("i",-1);
+                                return PyErr_SetFromErrno(error);
                     }
+                }
+            }
         }
         else if (arraydata->dim ==  3) // parses acfd and xcfd
         {
@@ -172,22 +180,20 @@ read_dmap_rec(PyObject *self, PyObject *args)
                 {
                     for (int m=0; m < 2; m++)
                     {
-                            if(arraydata->type == DATAFlOAT)
+                            if(arraydata->type == DATAFLOAT)
                             {
-                                value = Py_BuildValue("f",arraydata->fptr[(j*arraydata->rng[1]+k)*2+m]);
+                                value = Py_BuildValue("f",arraydata->data.fptr[(j*arraydata->rng[1]+k)*2+m]);
                             }
                             else
                             {
                                 Py_DECREF(value);
                                 Py_DECREF(vector_list);
                                 Py_DECREF(beam_record);
-                                return -1;
-
+                                error = Py_BuildValue("i",-1);
+                                return PyErr_SetFromErrno(error);
                             }
                             PyList_Append(vector_list, value);
-                            PyClear(value);
-
-
+                            PyCLEAR(value);
                     }
                 }
             }
@@ -198,8 +204,8 @@ read_dmap_rec(PyObject *self, PyObject *args)
             Py_DECREF(value);
             Py_DECREF(beam_record);
             Py_DECREF(vector_list);
-            return -1;
-
+            error = Py_BuildValue("i",-1);
+            return PyErr_SetFromErrno(error);
         }
         PyCLEAR(value);
         PyCLEAR(vector_list);
@@ -212,4 +218,22 @@ read_dmap_rec(PyObject *self, PyObject *args)
     return beam_record;
 }
 
+static PyMethodDef dmapMethods[] = 
+{
+    {"read_dmap_rec", read_dmap_rec, METH_VARARGS, "reads a dmap record"},
+    {NULL, 0, NULL, NULL} /* Sentinel */
+};
 
+static struct PyModuleDef dmapreader =
+{
+    PyModuleDef_HEAD_INIT,
+    "dmapreader",
+    "",
+    -1,
+    dmapMethods
+};
+
+PyMODINIT_FUNC PyInit_dampreader(void)
+{
+    return PyModule_Create(&dmapreader);
+}
