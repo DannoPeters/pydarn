@@ -268,9 +268,7 @@ class DarnWrite(DmapWrite):
                                  in each SuperDARN files types
         """
         self.__filename_check(filename)
-        self.__empty_record_check()
-        file_struct_list = [superdarn_formats.Iqdat.types]
-        self.superDARN_file_structure_to_bytes(file_struct_list)
+        self.write_iqdat_stream(self.dmap_records)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
@@ -307,9 +305,7 @@ class DarnWrite(DmapWrite):
                                  in each SuperDARN files types
         """
         self.__filename_check(filename)
-        self.__empty_record_check()
-        file_struct_list = [superdarn_formats.Rawacf.types]
-        self.superDARN_file_structure_to_bytes(file_struct_list)
+        self.write_rawacf_stream(self.dmap_records)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
@@ -346,9 +342,7 @@ class DarnWrite(DmapWrite):
                                  in each SuperDARN files types
         """
         self.__filename_check(filename)
-        self.__empty_record_check()
-        file_struct_list = [superdarn_formats.Fitacf.types]
-        self.superDARN_file_structure_to_bytes(file_struct_list)
+        self.write_fitacf_stream(self.dmap_records)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
@@ -385,14 +379,7 @@ class DarnWrite(DmapWrite):
                                  in each SuperDARN files types
         """
         self.__filename_check(filename)
-        self.__empty_record_check()
-        # Grid files can have extra fields based on how they are processed.
-        # If the command line option used in make_grid (See RST documentation)
-        # uses the command line option -ext then power and
-        # spectral width fields are included as well.
-        file_struct_list = [superdarn_formats.Grid.types,
-                            superdarn_formats.Grid.extra_fields]
-        self.superDARN_file_structure_to_bytes(file_struct_list)
+        self.write_grid_stream(self.dmap_records)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
@@ -434,17 +421,7 @@ class DarnWrite(DmapWrite):
                                  in each SuperDARN files types
         """
         self.__filename_check(filename)
-        self.__empty_record_check()
-        # Map files can have extra fields based on how they are processed.
-        # If the command line option map_grid -ext (See RST documentation) is
-        # used then power and spectral width is included into the fields.
-        # Other fields are also included on which map_add<methods> are used on
-        # the map file processing.
-        file_struct_list = [superdarn_formats.Map.types,
-                            superdarn_formats.Map.extra_fields,
-                            superdarn_formats.Map.fit_fields,
-                            superdarn_formats.Map.model_fields,
-                            superdarn_formats.Map.hmb_fields]
+        self.write_map_stream(self.dmap_records)
         self.superDARN_file_structure_to_bytes(file_struct_list)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
