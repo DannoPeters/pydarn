@@ -1,8 +1,11 @@
 
-lattitude = #North Positive South Negative
-longitude = #west in negative east positive
-elevation = #elevation correction factor
-julianDate = 
+lattitude = 52.1332 #North Positive, South Negative
+longitude = -106.6700 #west in negative, east positive
+elevation = 482 #elevation correction factor (meters)
+decMonth = round(275 * month / 9)
+decYear = round((month + 9) / 12)
+decMultiYear = (1 + round((year - 4 * round(year / 4) + 2) / 3))
+julianDate = decMonth - (decYear * decMultiYear) + day - 30
 
 daysSince2000 = julianDate - 2451545 + 68.184 / 86400  # number of days since Jan 1st, 2000 at midnight accounting for leap seconds (DUT1 for UTC)
 meanSolarTime = daysSince2000 - longitude/360 #Time of mean solar noon in terms of fractional days since Jan 1st, 2000 at midnight
