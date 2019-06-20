@@ -51,7 +51,7 @@ Note
 ----
 Source: http://www.esrl.noaa.gov/gmd/grad/solcalc/
 Translated to Python by Sebastien de Larquier
-Updaated and documented by Danno Peters
+UpdSated and documented by Danno Peters
 """
 
 import math
@@ -59,11 +59,11 @@ import numpy
 import datetime
 
 
-def calcTimeJulianCent( jd ):
+def calcTimeJulianCent( ):
     """Convert Julian Day to centuries since J2000.0.
     """
-    T = (jd - 2451545.0)/36525.0
-    return T
+    julianCent = (julianDay  - 2451545.0)/36525.0
+    return julianCent
 
 
 def calcGeomMeanLongSun( t ):
