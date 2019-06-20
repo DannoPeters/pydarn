@@ -194,12 +194,14 @@ def calcEquationOfTime( t ):
     return numpy.degrees(Etime*4.0) # in minutes of time
 
 
-def calcHourAngleSunrise( lat, solarDec ):
+def calcHourAngleSunrise( lat, solarDec, altitude=0 ):
     """Calculate the hour angle of the sun at sunrise for the latitude (in radians)
     """
     latRad = numpy.radians(lat)
     sdRad  = numpy.radians(solarDec)
-    HAarg = numpy.cos(numpy.radians(90.833)) / ( numpy.cos(latRad)*numpy.cos(sdRad) ) - numpy.tan(latRad) * numpy.tan(sdRad)
+    #HAarg = numpy.cos(numpy.radians(90.833)) / ( numpy.cos(latRad)*numpy.cos(sdRad) ) - numpy.tan(latRad) * numpy.tan(sdRad)
+    altCorr = -2.076*numpy.sqrt(altitude)/60
+    HAarg = ( numpy.sin(numpy.radians(-0.83+altCorr) ) - (numpy.sin(latRad)*numpy.sin(sdRad)) ) / ( numpy.cos(latRad)*numpy.cos(sdRad) )
     HA = numpy.arccos(HAarg);
     return HA # in radians (for sunset, use -HA)
 
@@ -287,13 +289,13 @@ def calcSolNoon( jd, longitude, timezone, dst ):
     return solNoonLocal
 
 
-def calcSunRiseSetUTC( jd, latitude, longitude ):
+def calcSunRiseSetUTC( jd, latitude, longitude, altitude=0):
     """Calculate sunrise/sunset the given day at the given location on earth (in minute since 0 UTC)
     """
     t = calcTimeJulianCent(jd)
     eqTime = calcEquationOfTime(t)
     solarDec = calcSunDeclination(t)
-    hourAngle = calcHourAngleSunrise(latitude, solarDec)
+    hourAngle = calcHourAngleSunrise(latitude, solarDec, altitude)
     # Rise time
     delta = longitude + numpy.degrees(hourAngle)
     riseTimeUTC = 720. - (4.0 * delta) - eqTime # in minutes
@@ -304,12 +306,12 @@ def calcSunRiseSetUTC( jd, latitude, longitude ):
     return riseTimeUTC, setTimeUTC
 
 
-def calcSunRiseSet( jd, latitude, longitude, timezone, dst ):
+def calcSunRiseSet( jd, latitude, longitude, timezone, dst, altitude=0 ):
     """Calculate sunrise/sunset the given day at the given location on earth (in minutes)
     """
-    rtimeUTC, stimeUTC = calcSunRiseSetUTC(jd, latitude, longitude)
+    rtimeUTC, stimeUTC = calcSunRiseSetUTC(jd, latitude, longitude, altitude)
     # calculate local sunrise time (in minutes)
-    rnewTimeUTC, snewTimeUTC = calcSunRiseSetUTC(jd + rtimeUTC/1440.0, latitude, longitude)
+    rnewTimeUTC, snewTimeUTC = calcSunRiseSetUTC(jd + rtimeUTC/1440.0, latitude, longitude, altitude)
     rtimeLocal = rnewTimeUTC + (timezone * 60.0)
     rtimeLocal += 60.0 if dst else 0.0
     if rtimeLocal < 0.0 or rtimeLocal >= 1440.0: 
@@ -319,7 +321,7 @@ def calcSunRiseSet( jd, latitude, longitude, timezone, dst ):
             rtimeLocal += increment * 1440.0
             jday -= increment
     # calculate local sunset time (in minutes)
-    rnewTimeUTC, snewTimeUTC = calcSunRiseSetUTC(jd + stimeUTC/1440.0, latitude, longitude)
+    rnewTimeUTC, snewTimeUTC = calcSunRiseSetUTC(jd + stimeUTC/1440.0, latitude, longitude, altitude)
     stimeLocal = snewTimeUTC + (timezone * 60.0)
     stimeLocal += 60.0 if dst else 0.0
     if stimeLocal < 0.0 or stimeLocal >= 1440.0: 
