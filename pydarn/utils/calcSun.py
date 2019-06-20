@@ -55,6 +55,7 @@ Translated to Python by Sebastien de Larquier
 
 import math
 import numpy
+import datetime
 
 
 def calcTimeJulianCent( jd ):
@@ -378,3 +379,7 @@ def getJD(date):
     jd = numpy.floor(365.25*(date.year + 4716.)) + numpy.floor(30.6001*(date.month+1)) + date.day + B - 1524.5
     jd = jd + date.hour/24.0 + date.minute/1440.0 + date.second/86400.0
     return jd
+
+    date = datetime.datetime.now()
+    Rise, Set = calcSunRiseSet( getJD(date), 52.1332, 106.6700, -6, 0, 482 )
+    print("Sunrise: {Rise}    Sunset: {Set}".format(Rise=Rise, Set=Set))
