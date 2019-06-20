@@ -51,6 +51,7 @@ Note
 ----
 Source: http://www.esrl.noaa.gov/gmd/grad/solcalc/
 Translated to Python by Sebastien de Larquier
+Updaated and documented by Danno Peters
 """
 
 import math
@@ -380,6 +381,10 @@ def getJD(date):
     jd = jd + date.hour/24.0 + date.minute/1440.0 + date.second/86400.0
     return jd
 
-    date = datetime.datetime.now()
-    Rise, Set = calcSunRiseSet( getJD(date), 52.1332, 106.6700, -6, 0, 482 )
-    print("Sunrise: {Rise}    Sunset: {Set}".format(Rise=Rise, Set=Set))
+
+
+date = datetime.datetime.now()
+Rise, Set = calcSunRiseSet(getJD(date), +52.1332, -106.6700, -6, 0, 482)
+Rise = "{HH}:{MM}:{SS}".format( HH=int(numpy.trunc(Rise/60)), MM= int(numpy.trunc(Rise-numpy.trunc(Rise/60)*60)), SS= int(numpy.trunc(Rise*60-numpy.trunc(Rise/60)*3600-numpy.trunc(Rise-numpy.trunc(Rise/60)*60)*60)))
+Set = "{HH}:{MM}:{SS}".format(HH=int(numpy.trunc(Set/60)), MM= int(numpy.trunc(Set-numpy.trunc(Set/60)*60)), SS= int(numpy.trunc(Set*60-numpy.trunc(Set/60)*3600-numpy.trunc(Set-numpy.trunc(Set/60)*60)*60)))
+print("Date: {date}    Sunrise: {Rise}    Sunset: {Set}".format(Rise=Rise, Set=Set, date=date))
