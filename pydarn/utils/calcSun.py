@@ -59,7 +59,7 @@ import numpy
 import datetime
 
 
-def calcTimeJulianCent( ):
+def calcTimeJulianCent( julianDay ):
     """Convert Julian Day to centuries since J2000.0.
     """
     julianCent = (julianDay  - 2451545.0)/36525.0
@@ -201,14 +201,13 @@ def calcHourAngleSunrise( lat, solarDec, altitude=0 ):
     """
     latRad = numpy.radians(lat)
     sdRad  = numpy.radians(solarDec)
-    #HAarg = numpy.cos(numpy.radians(90.833)) / ( numpy.cos(latRad)*numpy.cos(sdRad) ) - numpy.tan(latRad) * numpy.tan(sdRad)
     altCorr = -2.076*numpy.sqrt(altitude)/60
     HAarg = ( numpy.sin(numpy.radians(-0.83+altCorr) ) - (numpy.sin(latRad)*numpy.sin(sdRad)) ) / ( numpy.cos(latRad)*numpy.cos(sdRad) )
     HA = numpy.arccos(HAarg);
     return HA # in radians (for sunset, use -HA)
 
 
-def calcAzEl( t, localtime, latitude, longitude, zone ):
+def calcAzEl( t, localtime, latitude, longitude, zone=0, scatteringAngle=0):
     """Calculate sun azimuth and zenith angle
     """
     eqTime = calcEquationOfTime(t)
@@ -266,7 +265,7 @@ def calcAzEl( t, localtime, latitude, longitude, zone ):
             refractionCorrection = -20.774 / te
         refractionCorrection = refractionCorrection / 3600.0
 
-    solarZen = zenith - refractionCorrection
+    solarZen = zenith - refractionCorrection - scatteringAngle
     
     return azimuth, solarZen
 
@@ -291,9 +290,11 @@ def calcSolNoon( jd, longitude, timezone, dst ):
     return solNoonLocal
 
 
-def calcSunRiseSetUTC( jd, latitude, longitude, altitude=0):
+def calcSunRiseSetUTC( jd, latitude, longitude, altitude=0, type="Daylight"):
     """Calculate sunrise/sunset the given day at the given location on earth (in minute since 0 UTC)
     """
+    Degrees = {"Daylight": 0, "Civil": 6, "Nautical": 12, "Astronomical": 18}
+
     t = calcTimeJulianCent(jd)
     eqTime = calcEquationOfTime(t)
     solarDec = calcSunDeclination(t)
@@ -302,16 +303,15 @@ def calcSunRiseSetUTC( jd, latitude, longitude, altitude=0):
     delta = longitude + numpy.degrees(hourAngle)
     riseTimeUTC = 720. - (4.0 * delta) - eqTime # in minutes
     # Set time
-    hourAngle = -hourAngle
-    delta = longitude + numpy.degrees(hourAngle)
+    delta = longitude + numpy.degrees(-1*hourAngle)
     setTimeUTC = 720. - (4.0 * delta) - eqTime # in minutes
     return riseTimeUTC, setTimeUTC
 
 
-def calcSunRiseSet( jd, latitude, longitude, timezone, dst, altitude=0 ):
+def calcSunRiseSet( jd, latitude, longitude, timezone, dst, altitude=0, type="Daylight"):
     """Calculate sunrise/sunset the given day at the given location on earth (in minutes)
     """
-    rtimeUTC, stimeUTC = calcSunRiseSetUTC(jd, latitude, longitude, altitude)
+    rtimeUTC, stimeUTC = calcSunRiseSetUTC(jd, latitude, longitude, altitude, type)
     # calculate local sunrise time (in minutes)
     rnewTimeUTC, snewTimeUTC = calcSunRiseSetUTC(jd + rtimeUTC/1440.0, latitude, longitude, altitude)
     rtimeLocal = rnewTimeUTC + (timezone * 60.0)
@@ -383,8 +383,8 @@ def getJD(date):
 
 
 
-date = datetime.datetime.now()
-Rise, Set = calcSunRiseSet(getJD(date), +52.1332, -106.6700, -6, 0, 482)
+date = datetime.datetime(2010,6,21)
+Rise, Set = calcSunRiseSet(getJD(date), +40, -105, -6, 0, 482)
 Rise = "{HH}:{MM}:{SS}".format( HH=int(numpy.trunc(Rise/60)), MM= int(numpy.trunc(Rise-numpy.trunc(Rise/60)*60)), SS= int(numpy.trunc(Rise*60-numpy.trunc(Rise/60)*3600-numpy.trunc(Rise-numpy.trunc(Rise/60)*60)*60)))
 Set = "{HH}:{MM}:{SS}".format(HH=int(numpy.trunc(Set/60)), MM= int(numpy.trunc(Set-numpy.trunc(Set/60)*60)), SS= int(numpy.trunc(Set*60-numpy.trunc(Set/60)*3600-numpy.trunc(Set-numpy.trunc(Set/60)*60)*60)))
 print("Date: {date}    Sunrise: {Rise}    Sunset: {Set}".format(Rise=Rise, Set=Set, date=date))
